@@ -13,7 +13,7 @@ local function is_node_vein_diggable(nodeName, current_tool)
     return test.diggable
 end
 
-local function dig_pos(pos, oldnode, center)
+local function dig_pos(pos, oldnode, center, current_tool, digger)
     -- store oldnode name
     local node_name = oldnode.name
     local mine_list
@@ -21,11 +21,14 @@ local function dig_pos(pos, oldnode, center)
     local minvec = vector.offset(pos, -1, -1, -1)
     local maxvec = vector.offset(pos, 1, 1, 1)
     local adjacent_nodes = minetest.find_nodes_in_area(minvec, maxvec, node_name, true)
+    local drops = minetest.get_node_drops(node_name, current_tool)
 
     -- Dig found nodes
     for k, node in pairs(adjacent_nodes) do
         for index, pos in pairs(node) do
-            minetest.dig_node(pos)
+--            minetest.dig_node(pos)
+           minetest.handle_node_drops(pos, drops, digger) 
+           minetest.remove_node(pos)
         end
     end
 
@@ -44,7 +47,7 @@ minetest.register_on_dignode(function(pos, oldnode, digger)
     
     -- start vein mining
     if digger:get_player_control().sneak and current_tool ~= nil then
-        dig_pos(pos, oldnode, pos)
+        dig_pos(pos, oldnode, pos, current_tool, digger)
     end
 end)
 
