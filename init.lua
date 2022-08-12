@@ -20,7 +20,6 @@ local function dig_pos(pos, oldnode, center)
     -- Find adjacent nodes to dug node
     local minvec = vector.offset(pos, -1, -1, -1)
     local maxvec = vector.offset(pos, 1, 1, 1)
-    minetest.debug(node_name .. " from " .. tostring(minvec) .. " to " .. tostring(maxvec))
     local adjacent_nodes = minetest.find_nodes_in_area(minvec, maxvec, node_name, true)
 
     -- Dig found nodes
@@ -42,9 +41,6 @@ end
 
 minetest.register_on_dignode(function(pos, oldnode, digger)
     local current_tool = digger:get_wielded_item()
-    --if is_node_vein_diggable(oldnode.name, current_tool) then
-    --    minetest.debug("Diggable")
-    --end
     
     -- start vein mining
     if digger:get_player_control().sneak and current_tool ~= nil then
