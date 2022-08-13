@@ -15,15 +15,11 @@ local useToolBlacklist = false
 local rTools = {}
 
 local function is_node_vein_diggable(nodeName, wieldedName)
-	minetest.debug("nodeName = \"" .. nodeName .. "\"")
-	minetest.debug("wieldedName = \"" .. wieldedName .. "\"")
-	local nodeCheck = not useNodeBlacklist
-	local toolCheck = not useToolBlacklist
+	local nodeCheck = useNodeBlacklist
+	local toolCheck = useToolBlacklist
 	-- check nodes
 	for k, v in pairs(rNodes) do
-		minetest.debug(v)
 		if v == nodeName and useNodeBlacklist == true then
-			minetest.debug(v)
 			nodeCheck = false
 		elseif v == nodeName and useNodeBlacklist == false then
 			nodeCheck = true	
@@ -34,30 +30,13 @@ local function is_node_vein_diggable(nodeName, wieldedName)
 	--if nodeCheck == false then return false end	
 		
 	for k, v in pairs(rTools) do
-		minetest.debug(v)
 		if v == wieldedName and useToolBlacklist == true then
 			toolCheck = false
 		elseif v == wieldedName and useToolBlacklist == false then
-			minetest.debug(v)
 			toolCheck = true	
 		end
 	end
 	
-	local debug = ""
-	if nodeCheck then
-		debug = debug .. "Node check passed, "
-	else
-		debug = debug .. "Node check failed, "
-	end	
-
-	if toolCheck then
-		debug = debug .. "Tool check passed"
-	else
-		debug = debug .. "Tool check failed"
-	end
-
-	minetest.debug(debug)
-
 	return nodeCheck and toolCheck
 end
 
@@ -98,7 +77,6 @@ local function dig_pos(pos, oldnode, center, digger, mined_nodes)
 			-- add wear to wielded tool
 			wielded:add_wear(dp.wear)
 			mined_nodes["value"] = mined_nodes["value"] + 1
-			minetest.debug(mined_nodes["value"])
 		end
 	end
 
@@ -130,5 +108,8 @@ minetest.register_on_mods_loaded(function()
 	for name, def in pairs(minetest.registered_tools) do
 		table.insert(rTools, name)
 	end
+
+	-- Initialize blacklist for registered ores
+	table.insert(rNodes, "default:stone")
 end)
 
