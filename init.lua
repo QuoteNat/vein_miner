@@ -1,6 +1,6 @@
 vein_miner = {}
 -- Max distance from original veinmined node that can be vein mined
-MAX_VEIN_MINE_OFFSET = 5
+MAX_VEIN_MINE_OFFSET = 10
 
 --local function is_node_vein_diggable(nodeName, wielded[1])
 	-- -- Get the current tools capabilities
@@ -13,36 +13,47 @@ MAX_VEIN_MINE_OFFSET = 5
 	--return test.diggable
 --end
 
---local calc_wear(block_groups
+-- Recursively mines a vein of blocks
+-- params:
+-- * pos: mined block pos
+-- * oldnode: mined node
+-- * center: center of the originally mined block
+-- * digger: player who mined the block
 local function dig_pos(pos, oldnode, center, digger)
+	-- get current tool
 	local wielded = digger:get_wielded_item()
+
 	-- store oldnode name
 	local node_name = oldnode.name
+
 	-- Find adjacent nodes to dug node
 	local minvec = vector.offset(pos, -1, -1, -1)
 	local maxvec = vector.offset(pos, 1, 1, 1)
 	local adjacent_nodes = minetest.find_nodes_in_area(minvec, maxvec, node_name, true)
+
+	-- Get drops for mined node
 	local drops = minetest.get_node_drops(node_name, wielded)
+
 	-- calculate durability per block
-	-- local test = ItemStack(ItemStack|itemstring|table|nil)
 	local def = ItemStack(oldnode.name):get_definition()
-	local wdef = wielded:get_definition()
 	local tp = wielded:get_tool_capabilities()
-	local groups = ""
-	for k,v in pairs(def.groups) do
-		groups = groups .. k .. v	
-	end
 	local dp = minetest.get_dig_params(def.groups, tp)
+
 	-- Dig found nodes
 	for k, node in pairs(adjacent_nodes) do
 		for index, pos in pairs(node) do
-			--            minetest.dig_node(pos)
+			-- add drops to inventory or drop them if inventory is full
 			minetest.handle_node_drops(pos, drops, digger) 
+			-- remove the mined node
 			minetest.remove_node(pos)
+			-- add wear to wielded tool
 			wielded:add_wear(dp.wear)
 		end
 	end
+
+	-- Update wielded item
 	digger:set_wielded_item(wielded)
+
 	-- Attempt to find more nodes adjacent to the already dug nodes
 	for k, node in pairs(adjacent_nodes) do
 		for index, pos in pairs(node) do
