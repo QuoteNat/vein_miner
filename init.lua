@@ -1,6 +1,6 @@
 vein_miner = {}
--- Max distance from original veinmined node that can be vein mined
-MAX_VEIN_MINE_OFFSET = 10
+-- Maximum number of nodes that can be vein mined at once
+MAX_MINED_NODES = 188
 
 --local function is_node_vein_diggable(nodeName, wielded[1])
 	-- -- Get the current tools capabilities
@@ -19,7 +19,7 @@ MAX_VEIN_MINE_OFFSET = 10
 -- * oldnode: mined node
 -- * center: center of the originally mined block
 -- * digger: player who mined the block
-local function dig_pos(pos, oldnode, center, digger)
+local function dig_pos(pos, oldnode, center, digger, mined_nodes)
 	-- get current tool
 	local wielded = digger:get_wielded_item()
 
@@ -48,6 +48,8 @@ local function dig_pos(pos, oldnode, center, digger)
 			minetest.remove_node(pos)
 			-- add wear to wielded tool
 			wielded:add_wear(dp.wear)
+			mined_nodes["value"] = mined_nodes["value"] + 1
+			minetest.debug(mined_nodes["value"])
 		end
 	end
 
@@ -57,8 +59,8 @@ local function dig_pos(pos, oldnode, center, digger)
 	-- Attempt to find more nodes adjacent to the already dug nodes
 	for k, node in pairs(adjacent_nodes) do
 		for index, pos in pairs(node) do
-			if vector.distance(pos, center) <= MAX_VEIN_MINE_OFFSET then
-				dig_pos(pos, oldnode, center, digger)
+			if mined_nodes["value"] <= MAX_MINED_NODES then
+				dig_pos(pos, oldnode, center, digger, mined_nodes)
 			end
 		end
 	end
@@ -66,10 +68,11 @@ end
 
 minetest.register_on_dignode(function(pos, oldnode, digger)
 	local wielded = digger:get_wielded_item()
+	local mined_nodes = { value=1 }
 
 	-- start vein mining
 	if digger:get_player_control().sneak and wielded ~= nil then
-		dig_pos(pos, oldnode, pos, digger)
+		dig_pos(pos, oldnode, pos, digger, mined_nodes)
 	end
 end)
 
