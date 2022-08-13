@@ -2,16 +2,64 @@ vein_miner = {}
 -- Maximum number of nodes that can be vein mined at once
 MAX_MINED_NODES = 188
 
---local function is_node_vein_diggable(nodeName, wielded[1])
-	-- -- Get the current tools capabilities
---	local caps = wielded[1]:get_tool_capabilities()
-	-- -- Get the groups for the current node
---	local nodeGroups = minetest.registered_nodes[nodeName].groups
-	-- -- Test if the current tool can dig the node
-	--local test = minetest.get_dig_params(nodeGroups, caps)
-	-- -- Return if the node is diggable
-	--return test.diggable
---end
+-- PERMISSIONS
+-- If true, prevent registered nodes in rNodes from being veinmined.
+-- If false, prevent unregistered nodes in rNodes from being veinmined.
+local useNodeBlacklist = true
+-- Blacklisted or whitelisted nodes for veinmining
+local rNodes = {}
+
+-- Whether or not to use a blacklist instead of a whitelist for tools
+local useToolBlacklist = false
+-- Registered tools
+local rTools = {}
+
+local function is_node_vein_diggable(nodeName, wieldedName)
+	minetest.debug("nodeName = \"" .. nodeName .. "\"")
+	minetest.debug("wieldedName = \"" .. wieldedName .. "\"")
+	local nodeCheck = not useNodeBlacklist
+	local toolCheck = not useToolBlacklist
+	-- check nodes
+	for k, v in pairs(rNodes) do
+		minetest.debug(v)
+		if v == nodeName and useNodeBlacklist == true then
+			minetest.debug(v)
+			nodeCheck = false
+		elseif v == nodeName and useNodeBlacklist == false then
+			nodeCheck = true	
+		end
+	end
+
+	-- return false if nodeCheck failed
+	--if nodeCheck == false then return false end	
+		
+	for k, v in pairs(rTools) do
+		minetest.debug(v)
+		if v == wieldedName and useToolBlacklist == true then
+			toolCheck = false
+		elseif v == wieldedName and useToolBlacklist == false then
+			minetest.debug(v)
+			toolCheck = true	
+		end
+	end
+	
+	local debug = ""
+	if nodeCheck then
+		debug = debug .. "Node check passed, "
+	else
+		debug = debug .. "Node check failed, "
+	end	
+
+	if toolCheck then
+		debug = debug .. "Tool check passed"
+	else
+		debug = debug .. "Tool check failed"
+	end
+
+	minetest.debug(debug)
+
+	return nodeCheck and toolCheck
+end
 
 -- Recursively mines a vein of blocks
 -- params:
@@ -19,6 +67,7 @@ MAX_MINED_NODES = 188
 -- * oldnode: mined node
 -- * center: center of the originally mined block
 -- * digger: player who mined the block
+-- * mined_nodes: table containing number of mined nodes
 local function dig_pos(pos, oldnode, center, digger, mined_nodes)
 	-- get current tool
 	local wielded = digger:get_wielded_item()
@@ -71,8 +120,15 @@ minetest.register_on_dignode(function(pos, oldnode, digger)
 	local mined_nodes = { value=1 }
 
 	-- start vein mining
-	if digger:get_player_control().sneak and wielded ~= nil then
+	if digger:get_player_control().sneak and is_node_vein_diggable(oldnode.name, wielded:get_name()) then
 		dig_pos(pos, oldnode, pos, digger, mined_nodes)
+	end
+end)
+
+minetest.register_on_mods_loaded(function()
+	-- Initialize tool whitelist with registered tools
+	for name, def in pairs(minetest.registered_tools) do
+		table.insert(rTools, name)
 	end
 end)
 
