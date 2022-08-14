@@ -2,16 +2,56 @@ vein_miner = {}
 -- Maximum number of nodes that can be vein mined at once
 MAX_MINED_NODES = 188
 
---local function is_node_vein_diggable(nodeName, wielded[1])
-	-- -- Get the current tools capabilities
---	local caps = wielded[1]:get_tool_capabilities()
-	-- -- Get the groups for the current node
---	local nodeGroups = minetest.registered_nodes[nodeName].groups
-	-- -- Test if the current tool can dig the node
-	--local test = minetest.get_dig_params(nodeGroups, caps)
-	-- -- Return if the node is diggable
-	--return test.diggable
---end
+-- PERMISSIONS
+-- If true, prevent registered nodes in rNodes from being veinmined.
+-- If false, prevent unregistered nodes in rNodes from being veinmined.
+local nodeBlacklist = false
+-- Blacklisted or whitelisted nodes for veinmining
+local rNodes = {}
+
+-- Whether or not to use a blacklist instead of a whitelist for tools
+local toolBlacklist = false
+-- Registered tools
+local rTools = {}
+
+minetest.register_on_mods_loaded(function()
+	-- Initialize tool whitelist with registered tools
+	for name, def in pairs(minetest.registered_tools) do
+		table.insert(rTools, name)
+	end
+
+	-- Initialize whitelist for registered ores
+	for name, def in pairs(minetest.registered_ores) do
+		table.insert(rNodes, def.ore)
+	end
+end)
+
+
+local function is_node_vein_diggable(nodeName, wieldedName)
+	local nodeCheck = nodeBlacklist
+	local toolCheck = toolBlacklist
+	-- check nodes
+	for k, v in pairs(rNodes) do
+		if v == nodeName and nodeBlacklist == true then
+			nodeCheck = false
+		elseif v == nodeName and nodeBlacklist == false then
+			nodeCheck = true	
+		end
+	end
+
+	-- return false if nodeCheck failed
+	--if nodeCheck == false then return false end	
+		
+	for k, v in pairs(rTools) do
+		if v == wieldedName and toolBlacklist == true then
+			toolCheck = false
+		elseif v == wieldedName and toolBlacklist == false then
+			toolCheck = true	
+		end
+	end
+	
+	return nodeCheck and toolCheck
+end
 
 -- Recursively mines a vein of blocks
 -- params:
@@ -19,6 +59,7 @@ MAX_MINED_NODES = 188
 -- * oldnode: mined node
 -- * center: center of the originally mined block
 -- * digger: player who mined the block
+-- * mined_nodes: table containing number of mined nodes
 local function dig_pos(pos, oldnode, center, digger, mined_nodes)
 	-- get current tool
 	local wielded = digger:get_wielded_item()
@@ -49,7 +90,6 @@ local function dig_pos(pos, oldnode, center, digger, mined_nodes)
 			-- add wear to wielded tool
 			wielded:add_wear(dp.wear)
 			mined_nodes["value"] = mined_nodes["value"] + 1
-			minetest.debug(mined_nodes["value"])
 		end
 	end
 
@@ -71,7 +111,7 @@ minetest.register_on_dignode(function(pos, oldnode, digger)
 	local mined_nodes = { value=1 }
 
 	-- start vein mining
-	if digger:get_player_control().sneak and wielded ~= nil then
+	if digger:get_player_control().sneak and is_node_vein_diggable(oldnode.name, wielded:get_name()) then
 		dig_pos(pos, oldnode, pos, digger, mined_nodes)
 	end
 end)
