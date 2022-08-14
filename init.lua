@@ -5,7 +5,7 @@ MAX_MINED_NODES = 188
 -- PERMISSIONS
 -- If true, prevent registered nodes in rNodes from being veinmined.
 -- If false, prevent unregistered nodes in rNodes from being veinmined.
-local nodeBlacklist = true
+local nodeBlacklist = false
 -- Blacklisted or whitelisted nodes for veinmining
 local rNodes = {}
 
@@ -20,8 +20,10 @@ minetest.register_on_mods_loaded(function()
 		table.insert(rTools, name)
 	end
 
-	-- Initialize blacklist for registered ores
-	table.insert(rNodes, "default:stone")
+	-- Initialize whitelist for registered ores
+	for name, def in pairs(minetest.registered_ores) do
+		table.insert(rNodes, def.ore)
+	end
 end)
 
 
