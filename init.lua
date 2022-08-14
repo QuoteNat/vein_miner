@@ -5,23 +5,34 @@ MAX_MINED_NODES = 188
 -- PERMISSIONS
 -- If true, prevent registered nodes in rNodes from being veinmined.
 -- If false, prevent unregistered nodes in rNodes from being veinmined.
-local useNodeBlacklist = true
+local nodeBlacklist = true
 -- Blacklisted or whitelisted nodes for veinmining
 local rNodes = {}
 
 -- Whether or not to use a blacklist instead of a whitelist for tools
-local useToolBlacklist = false
+local toolBlacklist = false
 -- Registered tools
 local rTools = {}
 
+minetest.register_on_mods_loaded(function()
+	-- Initialize tool whitelist with registered tools
+	for name, def in pairs(minetest.registered_tools) do
+		table.insert(rTools, name)
+	end
+
+	-- Initialize blacklist for registered ores
+	table.insert(rNodes, "default:stone")
+end)
+
+
 local function is_node_vein_diggable(nodeName, wieldedName)
-	local nodeCheck = useNodeBlacklist
-	local toolCheck = useToolBlacklist
+	local nodeCheck = nodeBlacklist
+	local toolCheck = toolBlacklist
 	-- check nodes
 	for k, v in pairs(rNodes) do
-		if v == nodeName and useNodeBlacklist == true then
+		if v == nodeName and nodeBlacklist == true then
 			nodeCheck = false
-		elseif v == nodeName and useNodeBlacklist == false then
+		elseif v == nodeName and nodeBlacklist == false then
 			nodeCheck = true	
 		end
 	end
@@ -30,9 +41,9 @@ local function is_node_vein_diggable(nodeName, wieldedName)
 	--if nodeCheck == false then return false end	
 		
 	for k, v in pairs(rTools) do
-		if v == wieldedName and useToolBlacklist == true then
+		if v == wieldedName and toolBlacklist == true then
 			toolCheck = false
-		elseif v == wieldedName and useToolBlacklist == false then
+		elseif v == wieldedName and toolBlacklist == false then
 			toolCheck = true	
 		end
 	end
@@ -101,15 +112,5 @@ minetest.register_on_dignode(function(pos, oldnode, digger)
 	if digger:get_player_control().sneak and is_node_vein_diggable(oldnode.name, wielded:get_name()) then
 		dig_pos(pos, oldnode, pos, digger, mined_nodes)
 	end
-end)
-
-minetest.register_on_mods_loaded(function()
-	-- Initialize tool whitelist with registered tools
-	for name, def in pairs(minetest.registered_tools) do
-		table.insert(rTools, name)
-	end
-
-	-- Initialize blacklist for registered ores
-	table.insert(rNodes, "default:stone")
 end)
 
