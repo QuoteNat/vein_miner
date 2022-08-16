@@ -3,7 +3,7 @@ vein_miner = {
 }
 dofile(minetest.get_modpath("vein_miner") .. "/deque.lua")
 -- Maximum number of nodes that can be vein mined at once
-MAX_MINED_NODES = 188
+local MAX_MINED_NODES = 188
 
 -- PERMISSIONS
 -- If true, prevent registered nodes in rNodes from being veinmined.
@@ -18,16 +18,27 @@ local toolBlacklist = false
 local rTools = {}
 
 minetest.register_on_mods_loaded(function()
+      -- Get settings
+      --local settings = Settings("settingtypes.txt")
+
+      -- Update MAX_MINED_NODES
+      MAX_MINED_NODES = tonumber(minetest.settings:get("max_nodes"))
+      local stringtoboolean = { ["true"]=true, ["false"]=false }
+      local allow_ores = stringtoboolean[minetest.settings:get("allow_ores")]
+      minetest.debug(MAX_MINED_NODES)
       -- Initialize tool whitelist with registered tools
       for name, def in pairs(minetest.registered_tools) do
 	 table.insert(rTools, name)
       end
       
       -- Initialize whitelist for registered ores
-      for name, def in pairs(minetest.registered_ores) do
-	 local node_name = def.ore
-	 if string.find(node_name, "stone_with_") ~= nil then
-	    table.insert(rNodes, node_name)
+      if allow_ores then
+	 minetest.debug("allow_ores is true")
+	 for name, def in pairs(minetest.registered_ores) do
+	    local node_name = def.ore
+	    if string.find(node_name, "stone_with_") ~= nil then
+	       table.insert(rNodes, node_name)
+	    end
 	 end
       end
 end)
