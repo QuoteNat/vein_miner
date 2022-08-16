@@ -1,5 +1,5 @@
 # The maximum amount of nodes that can be mined at once
-max_nodes (Maximum Mineable Nodes) int 188
+vein_miner_max_nodes (Maximum Mineable Nodes) int 188
 
 # If true, allows vein mining of "stone_with_[orename]" blocks
 allow_ores (Allow mining ores) bool true
