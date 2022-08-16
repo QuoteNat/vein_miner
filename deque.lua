@@ -1,7 +1,7 @@
 --- Deque implementation by Pierre 'catwell' Chapuis
 --- MIT licensed (see LICENSE.txt)
 
-local push_right = function(self, x)
+function vein_miner.deque.push_right(self, x)
   assert(x ~= nil)
   self.tail = self.tail + 1
   self[self.tail] = x
@@ -29,7 +29,7 @@ local pop_right = function(self)
   return r
 end
 
-local pop_left = function(self)
+function vein_miner.deque.pop_left(self)
   if self:is_empty() then return nil end
   local r = self[self.head+1]
   self.head = self.head + 1
@@ -112,12 +112,12 @@ local iter_left = function(self)
 end
 
 local methods = {
-  push_right = push_right,
+  push_right = vein_miner.deque.push_right,
   push_left = push_left,
   peek_right = peek_right,
   peek_left = peek_left,
   pop_right = pop_right,
-  pop_left = pop_left,
+  pop_left = vein_miner.deque.pop_left,
   rotate_right = rotate_right,
   rotate_left = rotate_left,
   remove_right = remove_right,
@@ -129,11 +129,7 @@ local methods = {
   contents = contents,
 }
 
-local new = function()
+function vein_miner.deque.new()
   local r = {head = 0, tail = 0}
   return setmetatable(r, {__index = methods})
 end
-
-return {
-  new = new,
-}

@@ -1,4 +1,7 @@
-vein_miner = {}
+vein_miner = {
+   deque = {}
+}
+dofile(minetest.get_modpath("vein_miner") .. "/deque.lua")
 -- Maximum number of nodes that can be vein mined at once
 MAX_MINED_NODES = 188
 
@@ -63,52 +66,57 @@ end
 -- * center: center of the originally mined block
 -- * digger: player who mined the block
 -- * mined_nodes: table containing number of mined nodes
-local function dig_pos(pos, oldnode, center, digger, mined_nodes)
+local function dig_pos(pos, oldnode, center, digger)
    -- get current tool
    local wielded = digger:get_wielded_item()
    
    -- store oldnode name
    local node_name = oldnode.name
-   
-   -- Find adjacent nodes to dug node
-   local minvec = vector.offset(pos, -1, -1, -1)
-   local maxvec = vector.offset(pos, 1, 1, 1)
-   local adjacent_nodes = minetest.find_nodes_in_area(minvec, maxvec, node_name, true)
 
-   -- Get drops for mined node
-   local drops = minetest.get_node_drops(node_name, wielded)
-   
+   -- create queue of positions to dig at to store nodes in
+   local queue = vein_miner.deque.new()
+
    -- calculate durability per block
    local def = ItemStack(oldnode.name):get_definition()
    local tp = wielded:get_tool_capabilities()
    local dp = minetest.get_dig_params(def.groups, tp)
+   local wear_limit = 65535 - dp.wear
+   local mined_nodes = 0
    
-   -- Dig found nodes
-   for k, node in pairs(adjacent_nodes) do
-      for index, pos in pairs(node) do
-	 if wielded:get_wear() < 65535 - dp.wear then
-	    -- add drops to inventory or drop them if inventory is full
-	    minetest.handle_node_drops(pos, drops, digger) 
-	    -- remove the mined node
-	    minetest.remove_node(pos)
-	    -- add wear to wielded tool
-	    wielded:add_wear(dp.wear)
-	    mined_nodes["value"] = mined_nodes["value"] + 1
+   -- add pos to queue
+   queue:push_right(pos)
+   while not queue:is_empty() and wielded:get_wear() < 65535 - dp.wear and mined_nodes < MAX_MINED_NODES do
+      -- Pop left-most item
+      local pos = queue:pop_left()
+      -- Find adjacent nodes to dug node
+      local minvec = vector.offset(pos, -1, -1, -1)
+      local maxvec = vector.offset(pos, 1, 1, 1)
+      local adjacent_nodes = minetest.find_nodes_in_area(minvec, maxvec, node_name, true)
+
+      -- Get drops for mined node
+      local drops = minetest.get_node_drops(node_name, wielded)
+      
+      
+      -- Dig found nodes
+      for k, node in pairs(adjacent_nodes) do
+	 for index, pos in pairs(node) do
+	    if wielded:get_wear() < wear_limit then
+	       -- add drops to inventory or drop them if inventory is full
+	       minetest.handle_node_drops(pos, drops, digger) 
+	       -- remove the mined node
+	       minetest.remove_node(pos)
+	       -- add pos to queue
+	       queue:push_right(pos)
+	       -- add wear to wielded tool
+	       wielded:add_wear(dp.wear)
+	       mined_nodes = mined_nodes + 1
+	    end
 	 end
-      end
+      end      
    end
-   
    -- Update wielded item
    digger:set_wielded_item(wielded)
-   
-   -- Attempt to find more nodes adjacent to the already dug nodes
-   for k, node in pairs(adjacent_nodes) do
-      for index, pos in pairs(node) do
-	 if mined_nodes["value"] <= MAX_MINED_NODES and wielded:get_wear() < 65535 - dp.wear then
-	    dig_pos(pos, oldnode, center, digger, mined_nodes)
-	 end
-      end
-   end
+
 end
 
 minetest.register_on_dignode(function(pos, oldnode, digger)
