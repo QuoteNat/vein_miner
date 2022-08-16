@@ -25,27 +25,36 @@ minetest.register_on_mods_loaded(function()
       local stringtoboolean = { ["true"]=true, ["false"]=false }
       local allow_ores = stringtoboolean[minetest.settings:get("allow_ores")]
       local allow_trees = stringtoboolean[minetest.settings:get("allow_trees")]
+      local allow_all = stringtoboolean[minetest.settings:get("allow_all")]
       -- Initialize tool whitelist with registered tools
       for name, def in pairs(minetest.registered_tools) do
 	 table.insert(rTools, name)
       end
       
-      -- Initialize whitelist for registered ores
-      if allow_ores then
-	 for name, def in pairs(minetest.registered_ores) do
-	    local node_name = def.ore
-	    if string.find(node_name, "stone_with_") ~= nil then
-	       table.insert(rNodes, node_name)
+      -- Initialize whitelist for registered nodes
+      if allow_all then
+	 -- wipe rNodes just in case
+	 for k,v in pairs(rNodes) do
+	    rNodes[k] = nil
+	 end
+	 nodeBlacklist = true
+      else
+	 if allow_ores then
+	    for name, def in pairs(minetest.registered_ores) do
+	       local node_name = def.ore
+	       if string.find(node_name, "stone_with_") ~= nil then
+		  table.insert(rNodes, node_name)
+	       end
 	    end
 	 end
-      end
 
-      -- Register tree nodes
-      if allow_trees then
-	 for name, def in pairs(minetest.registered_nodes) do
-	    if def.groups.tree ~= nil then
-	       local node_name = def.name
-	       table.insert(rNodes, node_name)
+	 -- Register tree nodes
+	 if allow_trees then
+	    for name, def in pairs(minetest.registered_nodes) do
+	       if def.groups.tree ~= nil then
+		  local node_name = def.name
+		  table.insert(rNodes, node_name)
+	       end
 	    end
 	 end
       end
