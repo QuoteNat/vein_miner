@@ -86,13 +86,15 @@ local function dig_pos(pos, oldnode, center, digger, mined_nodes)
    -- Dig found nodes
    for k, node in pairs(adjacent_nodes) do
       for index, pos in pairs(node) do
-	 -- add drops to inventory or drop them if inventory is full
-	 minetest.handle_node_drops(pos, drops, digger) 
-	 -- remove the mined node
-	 minetest.remove_node(pos)
-	 -- add wear to wielded tool
-	 wielded:add_wear(dp.wear)
-	 mined_nodes["value"] = mined_nodes["value"] + 1
+	 if wielded:get_wear() < 65535 - dp.wear then
+	    -- add drops to inventory or drop them if inventory is full
+	    minetest.handle_node_drops(pos, drops, digger) 
+	    -- remove the mined node
+	    minetest.remove_node(pos)
+	    -- add wear to wielded tool
+	    wielded:add_wear(dp.wear)
+	    mined_nodes["value"] = mined_nodes["value"] + 1
+	 end
       end
    end
    
@@ -102,7 +104,7 @@ local function dig_pos(pos, oldnode, center, digger, mined_nodes)
    -- Attempt to find more nodes adjacent to the already dug nodes
    for k, node in pairs(adjacent_nodes) do
       for index, pos in pairs(node) do
-	 if mined_nodes["value"] <= MAX_MINED_NODES then
+	 if mined_nodes["value"] <= MAX_MINED_NODES and wielded:get_wear() < 65535 - dp.wear then
 	    dig_pos(pos, oldnode, center, digger, mined_nodes)
 	 end
       end
