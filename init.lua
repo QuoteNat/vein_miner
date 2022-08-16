@@ -19,13 +19,12 @@ local rTools = {}
 
 minetest.register_on_mods_loaded(function()
       -- Get settings
-      --local settings = Settings("settingtypes.txt")
 
-      -- Update MAX_MINED_NODES
+      -- Fetch settings
       MAX_MINED_NODES = tonumber(minetest.settings:get("max_nodes"))
       local stringtoboolean = { ["true"]=true, ["false"]=false }
       local allow_ores = stringtoboolean[minetest.settings:get("allow_ores")]
-      minetest.debug(MAX_MINED_NODES)
+      local allow_trees = stringtoboolean[minetest.settings:get("allow_trees")]
       -- Initialize tool whitelist with registered tools
       for name, def in pairs(minetest.registered_tools) do
 	 table.insert(rTools, name)
@@ -33,10 +32,19 @@ minetest.register_on_mods_loaded(function()
       
       -- Initialize whitelist for registered ores
       if allow_ores then
-	 minetest.debug("allow_ores is true")
 	 for name, def in pairs(minetest.registered_ores) do
 	    local node_name = def.ore
 	    if string.find(node_name, "stone_with_") ~= nil then
+	       table.insert(rNodes, node_name)
+	    end
+	 end
+      end
+
+      -- Register tree nodes
+      if allow_trees then
+	 for name, def in pairs(minetest.registered_nodes) do
+	    if def.groups.tree ~= nil then
+	       local node_name = def.name
 	       table.insert(rNodes, node_name)
 	    end
 	 end
