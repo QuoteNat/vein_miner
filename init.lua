@@ -28,8 +28,6 @@ minetest.register_on_mods_loaded(function()
 	 MAX_MINED_NODES = 188
       end
       
-      minetest.debug(MAX_MINED_NODES)
-      minetest.debug(minetest.settings:get("vein_miner_max_nodes"))
       local stringtoboolean = { ["true"]=true, ["false"]=false }
       local allow_ores = stringtoboolean[minetest.settings:get("allow_ores")]
       local allow_trees = stringtoboolean[minetest.settings:get("allow_trees")]
