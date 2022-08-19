@@ -68,29 +68,29 @@ end)
 
 
 local function is_node_vein_diggable(nodeName, wieldedName)
-	local nodeCheck = nodeBlacklist
-	local toolCheck = toolBlacklist
-	-- check nodes
-	for k, v in pairs(rNodes) do
-	   if v == nodeName and nodeBlacklist == true then
-	      nodeCheck = false
-	   elseif v == nodeName and nodeBlacklist == false then
-	      nodeCheck = true	
-	   end
-	end
+   local nodeCheck = nodeBlacklist
+   local toolCheck = toolBlacklist
+   -- check nodes
+   for k, v in pairs(rNodes) do
+      if v == nodeName and nodeBlacklist == true then
+	 nodeCheck = false
+      elseif v == nodeName and nodeBlacklist == false then
+	 nodeCheck = true	
+      end
+   end
 
-	-- return false if nodeCheck failed
-	--if nodeCheck == false then return false end	
-		
-	for k, v in pairs(rTools) do
-	   if v == wieldedName and toolBlacklist == true then
-	      toolCheck = false
-	   elseif v == wieldedName and toolBlacklist == false then
-	      toolCheck = true	
-	   end
-	end
-	
-	return nodeCheck and toolCheck
+   -- return false if nodeCheck failed
+   --if nodeCheck == false then return false end	
+   
+   for k, v in pairs(rTools) do
+      if v == wieldedName and toolBlacklist == true then
+	 toolCheck = false
+      elseif v == wieldedName and toolBlacklist == false then
+	 toolCheck = true	
+      end
+   end
+   
+   return nodeCheck and toolCheck
 end
 
 -- Recursively mines a vein of blocks
@@ -154,12 +154,14 @@ local function dig_pos(pos, oldnode, center, digger)
 end
 
 minetest.register_on_dignode(function(pos, oldnode, digger)
-      local wielded = digger:get_wielded_item()
-      local mined_nodes = { value=1 }
+      if digger ~= nil and oldnode ~= nil and pos ~= nil then
+	 local wielded = digger:get_wielded_item()
+	 local mined_nodes = { value=1 }
       
-      -- start vein mining
-      if digger:get_player_control().sneak and is_node_vein_diggable(oldnode.name, wielded:get_name()) then
-	 dig_pos(pos, oldnode, pos, digger, mined_nodes)
+	 -- start vein mining
+	 if digger:get_player_control().sneak and is_node_vein_diggable(oldnode.name, wielded:get_name()) then
+	    dig_pos(pos, oldnode, pos, digger, mined_nodes)
+	 end
       end
 end)
 
