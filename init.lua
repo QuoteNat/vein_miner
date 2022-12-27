@@ -2,6 +2,9 @@ vein_miner = {
    deque = {}
 }
 dofile(minetest.get_modpath("vein_miner") .. "/deque.lua")
+
+local S = minetest.get_translator("vein_miner")
+
 -- Maximum number of nodes that can be vein mined at once
 local MAX_MINED_NODES = 188
 
@@ -109,9 +112,13 @@ local function dig_pos(pos, oldnode, center, digger)
    local wear_limit = 65535 - dp.wear
    local mined_nodes = 0
    
+   if wielded:get_wear() >= wear_limit then
+       minetest.chat_send_player(digger:get_player_name(), S("Tool does not have enough durability to mine this vein"))
+   end
+
    -- add pos to queue
    queue:push_right(pos)
-   while not queue:is_empty() and wielded:get_wear() < 65535 - dp.wear and mined_nodes < MAX_MINED_NODES do
+   while not queue:is_empty() and wielded:get_wear() < wear_limit and mined_nodes < MAX_MINED_NODES do
       -- Pop left-most item
       local pos = queue:pop_left()
       -- Find adjacent nodes to dug node
