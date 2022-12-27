@@ -2,6 +2,9 @@ vein_miner = {
    deque = {}
 }
 dofile(minetest.get_modpath("vein_miner") .. "/deque.lua")
+
+local S = minetest.get_translator("vein_miner")
+
 -- Maximum number of nodes that can be vein mined at once
 local MAX_MINED_NODES = 188
 
@@ -28,13 +31,12 @@ minetest.register_on_mods_loaded(function()
 	 MAX_MINED_NODES = 188
       end
       
-      local stringtoboolean = { ["true"]=true, ["false"]=false }
-      local allow_ores = stringtoboolean[minetest.settings:get("allow_ores")]
-      local allow_trees = stringtoboolean[minetest.settings:get("allow_trees")]
-      local allow_all = stringtoboolean[minetest.settings:get("allow_all")]
+      local allow_ores  = minetest.settings:get_bool("allow_ores", true)
+      local allow_trees = minetest.settings:get_bool("allow_trees", true)
+      local allow_all   = minetest.settings:get_bool("allow_all", false)
       -- Initialize tool whitelist with registered tools
       for name, def in pairs(minetest.registered_tools) do
-	 table.insert(rTools, name)
+          rTools[def.name] = true
       end
       
       -- Initialize whitelist for registered nodes
@@ -49,48 +51,41 @@ minetest.register_on_mods_loaded(function()
 	    for name, def in pairs(minetest.registered_ores) do
 	       local node_name = def.ore
 	       if string.find(node_name, "stone_with_") ~= nil then
-		  table.insert(rNodes, node_name)
+               rNodes[node_name] = true
 	       end
 	    end
 	 end
 
 	 -- Register tree nodes
-	 if allow_trees then
-	    for name, def in pairs(minetest.registered_nodes) do
-	       if def.groups.tree ~= nil then
-		  local node_name = def.name
-		  table.insert(rNodes, node_name)
-	       end
-	    end
-	 end
+	if allow_trees then
+		for name, def in pairs(minetest.registered_nodes) do
+			if def.groups.tree ~= nil then
+				local node_name = def.name
+				rNodes[node_name] = true
+			end
+		end
+	end
       end
 end)
 
 
 local function is_node_vein_diggable(nodeName, wieldedName)
-   local nodeCheck = nodeBlacklist
-   local toolCheck = toolBlacklist
-   -- check nodes
-   for k, v in pairs(rNodes) do
-      if v == nodeName and nodeBlacklist == true then
-	 nodeCheck = false
-      elseif v == nodeName and nodeBlacklist == false then
-	 nodeCheck = true	
-      end
-   end
+    local nodeCheck = nodeBlacklist and true or false
+    local toolCheck = toolBlacklist and true or false
 
-   -- return false if nodeCheck failed
-   --if nodeCheck == false then return false end	
-   
-   for k, v in pairs(rTools) do
-      if v == wieldedName and toolBlacklist == true then
-	 toolCheck = false
-      elseif v == wieldedName and toolBlacklist == false then
-	 toolCheck = true	
-      end
-   end
-   
-   return nodeCheck and toolCheck
+    -- check nodes
+    if next(rNodes) then
+        local isNodeInRnodes = (rNodes[nodeName] ~= nil) and true or false
+        nodeCheck = (isNodeInRnodes ~= nodeBlacklist)
+    end
+
+    -- check tools
+    if next(rTools) then
+        local isToolInRtools = (rTools[wieldedName] ~= nil) and true or false
+        toolCheck = (isToolInRtools ~= toolBlacklist)
+    end
+
+    return nodeCheck and toolCheck
 end
 
 -- Recursively mines a vein of blocks
@@ -117,9 +112,13 @@ local function dig_pos(pos, oldnode, center, digger)
    local wear_limit = 65535 - dp.wear
    local mined_nodes = 0
    
+   if wielded:get_wear() >= wear_limit then
+       minetest.chat_send_player(digger:get_player_name(), S("Tool does not have enough durability to mine this vein"))
+   end
+
    -- add pos to queue
    queue:push_right(pos)
-   while not queue:is_empty() and wielded:get_wear() < 65535 - dp.wear and mined_nodes < MAX_MINED_NODES do
+   while not queue:is_empty() and wielded:get_wear() < wear_limit and mined_nodes < MAX_MINED_NODES do
       -- Pop left-most item
       local pos = queue:pop_left()
       -- Find adjacent nodes to dug node
