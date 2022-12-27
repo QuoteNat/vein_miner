@@ -28,10 +28,9 @@ minetest.register_on_mods_loaded(function()
 	 MAX_MINED_NODES = 188
       end
       
-      local stringtoboolean = { ["true"]=true, ["false"]=false }
-      local allow_ores = stringtoboolean[minetest.settings:get("allow_ores")]
-      local allow_trees = stringtoboolean[minetest.settings:get("allow_trees")]
-      local allow_all = stringtoboolean[minetest.settings:get("allow_all")]
+      local allow_ores  = minetest.settings:get_bool("allow_ores", true)
+      local allow_trees = minetest.settings:get_bool("allow_trees", true)
+      local allow_all   = minetest.settings:get_bool("allow_all", false)
       -- Initialize tool whitelist with registered tools
       for name, def in pairs(minetest.registered_tools) do
 	 table.insert(rTools, name)
