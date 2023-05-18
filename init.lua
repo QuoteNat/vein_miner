@@ -49,10 +49,14 @@ minetest.register_on_mods_loaded(
             nodeBlacklist = true
         else
             if allow_ores then
+                local ore_patterns = {":stone_with_", ":mineral_", "_ore$"}
                 for name, def in pairs(minetest.registered_ores) do
                     local node_name = def.ore
-                    if string.find(node_name, "stone_with_") ~= nil then
-                        rNodes[node_name] = true
+                    for _, ore_pattern in pairs(ore_patterns) do
+                        if string.match(node_name, ore_pattern) ~= nil then
+                            rNodes[node_name] = true
+                            break
+                        end
                     end
                 end
             end
