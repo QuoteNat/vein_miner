@@ -2,10 +2,10 @@
 vein_miner_max_nodes (Maximum Mineable Nodes) int 188
 
 # If true, allows vein mining of "stone_with_[orename]" blocks
-allow_ores (Allow mining ores) bool true
+vein_miner_allow_ores (Allow mining ores) bool true
 
 # If true, allows vein mining tree blocks (logs, leaves, ect.)
-allow_trees (Allow mining trees) bool true
+vein_miner_allow_trees (Allow mining trees) bool true
 
 # If true, allow vein mining any block. Overrides previous settings
-allow_all (Allow mining any node) bool false
+vein_miner_allow_all (Allow mining any node) bool false
