@@ -44,11 +44,11 @@ minetest.register_on_mods_loaded(
         end
 
 	if allow_trees == nil then
-	   local allow_trees = minetest.settings:get_bool("allow_trees", false)
+	   local allow_trees = minetest.settings:get_bool("vein_miner_allow_trees", false)
 	end
 
 	if allow_all == nil then
-	   local allow_all = minetest.settings:get_bool("allow_all", false)
+	   local allow_all = minetest.settings:get_bool("vein_miner_allow_all", false)
 	end
 	
         -- Initialize tool whitelist with registered tools
