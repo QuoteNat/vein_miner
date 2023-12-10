@@ -27,7 +27,7 @@ minetest.register_on_mods_loaded(
 	
 	-- Check legacy settings
         local allow_ores = minetest.settings:get_bool("allow_ores", true)
-        local allow_trees = minetest.settings:get_bool("allow_trees", true)
+        local allow_trees = minetest.settings:get_bool("allow_trees", false)
         local allow_all = minetest.settings:get_bool("allow_all", false)
 	
         -- Fetch settings
@@ -44,7 +44,7 @@ minetest.register_on_mods_loaded(
         end
 
 	if allow_trees == nil then
-	   local allow_trees = minetest.settings:get_bool("allow_trees", true)
+	   local allow_trees = minetest.settings:get_bool("allow_trees", false)
 	end
 
 	if allow_all == nil then
