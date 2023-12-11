@@ -26,9 +26,9 @@ minetest.register_on_mods_loaded(
 
 	
 	-- Check legacy settings
-        local allow_ores = minetest.settings:get_bool("allow_ores", true)
-        local allow_trees = minetest.settings:get_bool("allow_trees", false)
-        local allow_all = minetest.settings:get_bool("allow_all", false)
+        local allow_ores = minetest.settings:get_bool("allow_ores")
+        local allow_trees = minetest.settings:get_bool("allow_trees")
+        local allow_all = minetest.settings:get_bool("allow_all")
 	
         -- Fetch settings
         MAX_MINED_NODES = tonumber(minetest.settings:get("vein_miner_max_nodes"))
@@ -40,15 +40,15 @@ minetest.register_on_mods_loaded(
 
 	-- Use namespaces settings if legacy settings are unset
 	if allow_ores == nil then
-	   local allow_ores = minetest.settings:get_bool("vein_miner_allow_ores", true)   
+	   allow_ores = minetest.settings:get_bool("vein_miner_allow_ores", true)   
         end
 
 	if allow_trees == nil then
-	   local allow_trees = minetest.settings:get_bool("vein_miner_allow_trees", false)
+	   allow_trees = minetest.settings:get_bool("vein_miner_allow_trees", false)
 	end
 
 	if allow_all == nil then
-	   local allow_all = minetest.settings:get_bool("vein_miner_allow_all", false)
+	   allow_all = minetest.settings:get_bool("vein_miner_allow_all", false)
 	end
 	
         -- Initialize tool whitelist with registered tools
